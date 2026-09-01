@@ -23,37 +23,39 @@
   </head>
   <body class="bg-slate-100 text-slate-800">
     <div class="min-h-screen flex">
-      <aside class="w-72 bg-slate-900 text-slate-200 hidden lg:flex flex-col">
+      <!-- Desktop Sidebar -->
+      <aside class="w-72 bg-slate-900 text-slate-200 hidden lg:flex flex-col shrink-0">
         <div class="p-6 border-b border-slate-700">
           <h1 class="text-2xl font-bold text-white">ESA Cool</h1>
           <p class="text-sm text-slate-400">Service Management</p>
         </div>
-
         <nav class="flex-1 p-4 space-y-2">
           <a href="dashboard.html" class="nav-link">Dashboard</a>
           <a href="customers.html" class="nav-link">Customers</a>
           <a href="aircon-units.html" class="nav-link active">Aircon Units</a>
           <a href="services.html" class="nav-link">Service History</a>
         </nav>
-
         <div class="p-4 border-t border-slate-700">
           <button id="logoutBtn" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium">Logout</button>
         </div>
       </aside>
 
-      <main class="flex-1">
+      <!-- Main Content Area -->
+      <main class="flex-1 min-w-0 block">
+        <!-- Header -->
         <header class="bg-white shadow-sm border-b border-slate-200 p-4 lg:p-6">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 class="text-2xl font-bold text-slate-900">Aircon Units</h2>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Aircon Units</h2>
             </div>
-            <div class="flex items-center gap-3">
-              <button id="addUnitBtn" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-teal-700">Add Unit</button>
-              <button class="lg:hidden bg-slate-900 text-white px-4 py-2 rounded-lg" id="mobileMenuBtn">Menu</button>
+            <div class="flex items-center gap-2">
+              <button id="addUnitBtn" class="bg-primary text-white px-3 py-2 text-sm sm:text-base sm:px-4 rounded-lg hover:bg-teal-700">Add Unit</button>
+              <button class="lg:hidden bg-slate-900 text-white px-3 py-2 text-sm sm:text-base sm:px-4 rounded-lg" id="mobileMenuBtn">Menu</button>
             </div>
           </div>
         </header>
 
+        <!-- Table & Filters Area -->
         <div class="p-4 lg:p-6">
           <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm mb-6">
             <div class="grid md:grid-cols-2 gap-3">
@@ -86,16 +88,15 @@
       </main>
     </div>
 
+    <!-- Modals -->
     <div id="unitModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl w-full max-w-4xl p-6">
+      <div class="bg-white rounded-2xl w-full max-w-4xl p-6 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-6">
           <h3 id="unitModalTitle" class="text-2xl font-bold text-slate-900">Add Aircon Unit</h3>
           <button type="button" id="closeUnitModal" class="text-2xl text-slate-500">✕</button>
         </div>
-
         <form id="unitForm" class="space-y-4">
           <input type="hidden" id="unitId" />
-
           <div class="grid md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Customer</label>
@@ -152,8 +153,7 @@
               </select>
             </div>
           </div>
-
-          <div class="flex justify-end gap-3 pt-2">
+          <div class="flex justify-end gap-3 pt-4">
             <button type="button" id="cancelUnitBtn" class="px-5 py-3 rounded-xl border border-slate-300 text-slate-700">Cancel</button>
             <button type="submit" class="px-5 py-3 rounded-xl bg-primary text-white hover:bg-teal-700">Save Unit</button>
           </div>
@@ -161,6 +161,7 @@
       </div>
     </div>
 
+    <!-- Mobile Sidebar -->
     <div id="mobileSidebar" class="hidden fixed inset-0 bg-slate-900/50 z-40">
       <div class="bg-slate-900 text-slate-200 w-72 h-full p-4">
         <div class="flex justify-between items-center mb-6">

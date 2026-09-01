@@ -1,90 +1,106 @@
+// js/auth.js
 import { supabase } from './supabase.js';
 
 const loginForm = document.getElementById('loginForm');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
 const authMessage = document.getElementById('authMessage');
-
-function showMessage(message, type = 'error') {
-  if (!authMessage) return;
-  authMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
-  authMessage.classList.add(type === 'success' ? 'bg-green-100' : 'bg-red-100');
-  authMessage.classList.add(type === 'success' ? 'text-green-700' : 'text-red-700');
-  authMessage.textContent = message;
-  authMessage.classList.remove('hidden');
-}
-
-async function redirectIfAuthenticated() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    window.location.href = './dashboard.html';
-  }
-}
-
-if (loginForm) {
-  loginForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-
-    if (!email || !password) {
-      showMessage('Please provide both email and password.');
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) throw error;
-
-      showMessage('Login successful. Redirecting...', 'success');
-      setTimeout(() => window.location.href = './dashboard.html', 600);
-    } catch (error) {
-      showMessage(error.message || 'Unable to sign in.');
-    }
-  });
-}
-
 const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-      window.location.href = './index.html';
-    }
-  });
-}
+const userEmailDisplay = document.getElementById('userEmail');
 
-const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-const mobileSidebar = document.getElementById('mobileSidebar');
-const closeSidebar = document.getElementById('closeSidebar');
+// 1. Check Auth State on Page Load
+async function checkAuth() {
+  // Hide the form entirely while checking so the user can't interact with it
+  if (loginForm) {
+      loginForm.style.display = 'none'; 
+  }
 
-if (mobileMenuBtn && mobileSidebar) {
-  mobileMenuBtn.addEventListener('click', () => mobileSidebar.classList.remove('hidden'));
-}
+  try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      const currentPage = window.location.pathname;
+      const isLoginPage = currentPage.endsWith('login.html') || currentPage.endsWith('index.html') || currentPage === '/' || currentPage.endsWith('5500/');
 
-if (closeSidebar && mobileSidebar) {
-  closeSidebar.addEventListener('click', () => mobileSidebar.classList.add('hidden'));
-}
-
-if (mobileSidebar) {
-  mobileSidebar.addEventListener('click', (event) => {
-    if (event.target === mobileSidebar) {
-      mobileSidebar.classList.add('hidden');
-    }
-  });
-}
-
-const userEmail = document.getElementById('userEmail');
-if (userEmail) {
-  const { data: { user } } = await supabase.auth.getUser();
-  userEmail.textContent = user?.email || 'Unknown user';
-}
-
-if (window.location.pathname.endsWith('dashboard.html') || window.location.pathname.endsWith('customers.html') || window.location.pathname.endsWith('aircon-units.html') || window.location.pathname.endsWith('services.html')) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.href = './index.html';
+      if (session) {
+        if (isLoginPage) {
+          window.location.replace('dashboard.html'); // Use replace to prevent "Back" button loops
+          return;
+        }
+        if (userEmailDisplay) {
+          userEmailDisplay.textContent = session.user.email;
+        }
+      } else {
+        // Only show the form AFTER we confirm there is no active session
+        if (loginForm) {
+            loginForm.style.display = 'block'; 
+        }
+        
+        if (!isLoginPage) {
+          window.location.replace('index.html');
+        }
+      }
+  } catch (err) {
+      console.error("Auth check failed:", err);
+      if (loginForm) loginForm.style.display = 'block'; 
   }
 }
 
-redirectIfAuthenticated();
+// 2. Handle Login
+if (loginForm) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.textContent;
+    submitBtn.textContent = 'Signing in...';
+    submitBtn.disabled = true;
+    
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (error) {
+      authMessage.textContent = error.message;
+      authMessage.classList.remove('hidden', 'bg-teal-100', 'text-teal-800');
+      authMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-200');
+      
+      submitBtn.textContent = originalBtnText;
+      submitBtn.disabled = false;
+    } else {
+      window.location.replace('dashboard.html');
+    }
+  });
+}
+
+// 3. Handle Bulletproof Logout
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    // Visual feedback so you know the click actually registered
+    logoutBtn.textContent = 'Logging out...';
+    logoutBtn.disabled = true;
+    
+    try {
+        await supabase.auth.signOut();
+        
+        // Nuke local storage entirely to prevent "zombie" sessions
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        window.location.replace('index.html');
+    } catch (error) {
+        console.error("Logout error:", error);
+        alert("There was an issue logging out. Please manually refresh.");
+        logoutBtn.textContent = 'Logout';
+        logoutBtn.disabled = false;
+    }
+  });
+}
+
+// Initialize Auth Check
+checkAuth();
